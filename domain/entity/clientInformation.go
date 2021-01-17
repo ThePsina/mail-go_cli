@@ -1,6 +1,6 @@
 package entity
 
-type ClientInfReq struct {
+type ClientInformation struct {
 	Token string
 	Scope string
 }

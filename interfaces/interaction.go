@@ -3,6 +3,7 @@ package interfaces
 import (
 	"cli/domain/entity"
 	"errors"
+	"log"
 )
 
 const (
@@ -23,23 +24,17 @@ func (app *App) Run(args []string) error {
 		return err
 	}
 
-	pkg, err := app.mailer.CreatePackage(entity.ClientInfReq{Token: args[tokenPos], Scope: args[scopePos]})
+	err = app.mailer.Send(conn, app.mailer.CreatePackage(entity.ClientInformation{Token: args[tokenPos], Scope: args[scopePos]}))
 	if err != nil {
 		return err
 	}
 
-	rawResp, err := app.mailer.Send(conn, pkg)
+	resp, err := app.mailer.Receive(conn)
 	if err != nil {
-		return err
+		log.Println(err)
 	}
 
-	resp, err := app.mailer.ReadResponse(rawResp)
-	if err != nil {
-		return err
-	}
-
-	app.print(resp)
-
+	resp.Print()
 	return nil
 }
 
@@ -49,8 +44,4 @@ func (app *App) checkArgs(args []string) error {
 	}
 
 	return nil
-}
-
-func (app *App) print(resp entity.Response) {
-
 }
