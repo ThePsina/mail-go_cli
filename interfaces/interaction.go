@@ -3,7 +3,6 @@ package interfaces
 import (
 	"cli/domain/entity"
 	"errors"
-	"log"
 )
 
 const (
@@ -31,7 +30,7 @@ func (app *App) Run(args []string) error {
 
 	resp, err := app.mailer.Receive(conn)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	resp.Print()

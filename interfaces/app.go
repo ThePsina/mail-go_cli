@@ -1,11 +1,13 @@
 package interfaces
 
-import "cli/application"
+import (
+	"cli/domain/repository"
+)
 
 type App struct {
-	mailer *application.MailApp
+	mailer repository.AppLogic
 }
 
-func NewApp() *App {
-	return &App{mailer: application.NewMailApp()}
+func NewApp(handler repository.AppLogic) *App {
+	return &App{mailer: handler}
 }

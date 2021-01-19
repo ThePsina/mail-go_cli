@@ -108,7 +108,7 @@ func (mailApp *MailApp) Receive(src net.Conn) (repository.Response, error) {
 func (mailApp *MailApp) parseResponse(rawResponse []byte) (repository.Response, error) {
 	reader := bytes.NewReader(rawResponse)
 	respInf := entity.ResponseInformation{}
-	if err := binary.Read(reader, binary.LittleEndian, respInf); err != nil {
+	if err := binary.Read(reader, binary.LittleEndian, &respInf); err != nil {
 		return nil, err
 	}
 
@@ -120,6 +120,7 @@ func (mailApp *MailApp) parseResponse(rawResponse []byte) (repository.Response, 
 	}
 	response := &entity.ResponseErr{}
 	err := mailApp.fillResponse(response, body)
+	response.ReturnCode = respInf.ReturnCode
 	return response, err
 }
 
@@ -135,6 +136,10 @@ func (mailApp *MailApp) fillResponse(inf interface{}, data []byte) error {
 	for i := 0; i < val.NumField(); i++ {
 		valueField := val.Field(i)
 		typeField := val.Type().Field(i)
+
+		if typeField.Tag.Get("unpack") == "-" {
+			continue
+		}
 
 		switch typeField.Type.Kind() {
 		case reflect.Int32:
