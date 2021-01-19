@@ -5,13 +5,15 @@ import (
 	"cli/domain/entity"
 	"cli/domain/repository"
 	"encoding/binary"
+	"fmt"
 	"net"
+	"reflect"
 )
 
 const (
-	svcId     int32 = 2
-	requestId int32 = 0
-	svcMsg    int32 = 1
+	svcId        int32 = 2
+	bodyBeginPos       = 16
+	svcMsg       int32 = 1
 )
 
 type MailApp struct {
@@ -110,24 +112,59 @@ func (mailApp *MailApp) parseResponse(rawResponse []byte) (repository.Response, 
 		return nil, err
 	}
 
+	body := rawResponse[bodyBeginPos:]
 	if respInf.ReturnCode == 0 {  // no error
-		return mailApp.fillResponseOk(rawResponse)
+		response := &entity.ResponseOk{}
+		err := mailApp.fillResponse(response, body)
+		return response, err
 	}
-	return mailApp.fillResponseErr(rawResponse)
+	response := &entity.ResponseErr{}
+	err := mailApp.fillResponse(response, body)
+	return response, err
 }
 
-func (mailApp *MailApp) fillResponseOk(body []byte) (ok *entity.ResponseOk, err error) {
-	reader := bytes.NewReader(body)
-	if err = binary.Read(reader, binary.LittleEndian, ok); err != nil {
-		return nil, err
-	}
-	return
-}
+func (mailApp *MailApp) fillResponse(inf interface{}, data []byte) error {
+	reader := bytes.NewReader(data)
 
-func (mailApp *MailApp) fillResponseErr(body []byte) (notOk *entity.ResponseErr, err error) {
-	reader := bytes.NewReader(body)
-	if err = binary.Read(reader, binary.LittleEndian, notOk); err != nil {
-		return nil, err
+	val := reflect.ValueOf(inf)
+	if val.Kind() != reflect.Ptr {
+		return fmt.Errorf("input is not pointer")
 	}
-	return
+
+	val = val.Elem()
+	for i := 0; i < val.NumField(); i++ {
+		valueField := val.Field(i)
+		typeField := val.Type().Field(i)
+
+		switch typeField.Type.Kind() {
+		case reflect.Int32:
+			var value uint32
+			if err := binary.Read(reader, binary.LittleEndian, &value); err != nil {
+				return err
+			}
+			valueField.SetInt(int64(value))
+		case reflect.Int64:
+			var value uint64
+			if err := binary.Read(reader, binary.LittleEndian, &value); err != nil {
+				return err
+			}
+			valueField.SetInt(int64(value))
+		case reflect.String:
+			var lenRaw uint32
+			if err := binary.Read(reader, binary.LittleEndian, &lenRaw); err != nil {
+				return err
+			}
+
+			dataRaw := make([]byte, lenRaw)
+			if err := binary.Read(reader, binary.LittleEndian, &dataRaw); err != nil {
+				return err
+			}
+
+			valueField.SetString(string(dataRaw))
+		default:
+			return fmt.Errorf("bad type: %v for field %v", typeField.Type.Kind(), typeField.Name)
+		}
+	}
+
+	return nil
 }

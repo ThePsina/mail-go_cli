@@ -1,16 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"net"
+	"cli/interfaces"
+	"log"
 	"os"
 )
 
-const numOfArgs = 5
-
 func main() {
-	if len(os.Args) != numOfArgs {
-		os.Exit(-1)
+	app := interfaces.NewApp()
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
 	}
-	fmt.Println(net.JoinHostPort(os.Args[1], os.Args[2]))
 }
