@@ -87,6 +87,10 @@ func (mailApp *MailApp) createString(str string) []byte {
 	return append(strLen, strBytes...) // len bytes + str bytes
 }
 
+/*
+	Send client information(entity.ClientInformation) to address(entity.Connection)
+	After got response from server and parse it
+*/
 func (mailApp *MailApp) Send(connection entity.Connection, inf entity.ClientInformation) (repository.Response, error) {
 	conn, err := net.Dial("tcp", net.JoinHostPort(connection.Host, connection.Port))
 	if err != nil {
@@ -115,13 +119,23 @@ func (mailApp *MailApp) Send(connection entity.Connection, inf entity.ClientInfo
 
 func (mailApp *MailApp) parseResponse(rawResponse []byte) (repository.Response, error) {
 	reader := bytes.NewReader(rawResponse)
+
+	/*
+	get header information and return code to understand: ok or error response
+	*/
 	respInf := entity.ResponseInformation{}
 	if err := binary.Read(reader, binary.LittleEndian, &respInf); err != nil {
 		return nil, err
 	}
 
+	/*
+	position in package after header
+	*/
 	body := rawResponse[bodyBeginPos:]
-	if respInf.ReturnCode == 0 {  // no error
+	/*
+	not error response
+	*/
+	if respInf.ReturnCode == 0 {
 		response := &entity.ResponseOk{}
 		err := mailApp.fillResponse(response, body)
 		return response, err
@@ -132,6 +146,11 @@ func (mailApp *MailApp) parseResponse(rawResponse []byte) (repository.Response, 
 	return response, err
 }
 
+/*
+fill response struct from response body (without return code)
+in "ok-response" return code is 0
+in "error-response" return code is not 0; it fills in upper func
+*/
 func (mailApp *MailApp) fillResponse(inf interface{}, data []byte) error {
 	reader := bytes.NewReader(data)
 
