@@ -18,17 +18,10 @@ func (app *App) Run(args []string) error {
 		return err
 	}
 
-	conn, err := app.mailer.Connect(args[hostPos], args[portPos])
-	if err != nil {
-		return err
-	}
-
-	err = app.mailer.Send(conn, app.mailer.CreatePackage(entity.ClientInformation{Token: args[tokenPos], Scope: args[scopePos]}))
-	if err != nil {
-		return err
-	}
-
-	resp, err := app.mailer.Receive(conn)
+	resp, err := app.mailer.Send(
+		entity.Connection{Host: args[hostPos], Port: args[portPos]},
+		entity.ClientInformation{Token: args[tokenPos], Scope: args[scopePos]},
+	)
 	if err != nil {
 		return err
 	}

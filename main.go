@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	mailer := application.NewMailApp()
+	mailer := application.NewMockedApp()
 	app := interfaces.NewApp(mailer)
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)

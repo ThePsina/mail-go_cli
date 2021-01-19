@@ -49,7 +49,7 @@ func TestMailApp_CreatePackage(t *testing.T) {
 	app := NewMailApp()
 
 	inf := entity.ClientInformation{Token: "token", Scope: "scope"}
-	header := app.CreatePackage(inf)
+	header := app.createPackage(inf)
 
 	if len(header) != 30 {
 		t.Fatal("wrong bytes number")

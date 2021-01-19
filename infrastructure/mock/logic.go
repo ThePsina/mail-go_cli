@@ -8,7 +8,6 @@ import (
 	entity "cli/domain/entity"
 	repository "cli/domain/repository"
 	gomock "github.com/golang/mock/gomock"
-	net "net"
 	reflect "reflect"
 )
 
@@ -35,60 +34,17 @@ func (m *MockAppLogic) EXPECT() *MockAppLogicMockRecorder {
 	return m.recorder
 }
 
-// Connect mocks base method
-func (m *MockAppLogic) Connect(host, port string) (net.Conn, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Connect", host, port)
-	ret0, _ := ret[0].(net.Conn)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Connect indicates an expected call of Connect
-func (mr *MockAppLogicMockRecorder) Connect(host, port interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Connect", reflect.TypeOf((*MockAppLogic)(nil).Connect), host, port)
-}
-
-// CreatePackage mocks base method
-func (m *MockAppLogic) CreatePackage(inf entity.ClientInformation) []byte {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "CreatePackage", inf)
-	ret0, _ := ret[0].([]byte)
-	return ret0
-}
-
-// CreatePackage indicates an expected call of CreatePackage
-func (mr *MockAppLogicMockRecorder) CreatePackage(inf interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreatePackage", reflect.TypeOf((*MockAppLogic)(nil).CreatePackage), inf)
-}
-
 // Send mocks base method
-func (m *MockAppLogic) Send(dst net.Conn, pkg []byte) error {
+func (m *MockAppLogic) Send(connection entity.Connection, inf entity.ClientInformation) (repository.Response, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Send", dst, pkg)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Send indicates an expected call of Send
-func (mr *MockAppLogicMockRecorder) Send(dst, pkg interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockAppLogic)(nil).Send), dst, pkg)
-}
-
-// Receive mocks base method
-func (m *MockAppLogic) Receive(src net.Conn) (repository.Response, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Receive", src)
+	ret := m.ctrl.Call(m, "Send", connection, inf)
 	ret0, _ := ret[0].(repository.Response)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Receive indicates an expected call of Receive
-func (mr *MockAppLogicMockRecorder) Receive(src interface{}) *gomock.Call {
+// Send indicates an expected call of Send
+func (mr *MockAppLogicMockRecorder) Send(connection, inf interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Receive", reflect.TypeOf((*MockAppLogic)(nil).Receive), src)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockAppLogic)(nil).Send), connection, inf)
 }

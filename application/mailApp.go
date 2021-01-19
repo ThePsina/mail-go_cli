@@ -6,6 +6,7 @@ import (
 	"cli/domain/repository"
 	"encoding/binary"
 	"fmt"
+	"log"
 	"net"
 	"reflect"
 )
@@ -23,15 +24,11 @@ func NewMailApp() *MailApp {
 	return &MailApp{}
 }
 
-func (mailApp *MailApp) Connect(host, port string) (net.Conn, error) {
-	return net.Dial("tcp", net.JoinHostPort(host, port))
-}
-
 /*
 	<packet> ::= <request> | <response>
 	<request> ::= <header><svc_request_body>
 */
-func (mailApp *MailApp) CreatePackage(inf entity.ClientInformation) []byte {
+func (mailApp *MailApp) createPackage(inf entity.ClientInformation) []byte {
 	header := mailApp.createHeader(inf)
 	svcRequestBody := mailApp.createSvcRequestBody(inf)
 
@@ -90,14 +87,25 @@ func (mailApp *MailApp) createString(str string) []byte {
 	return append(strLen, strBytes...) // len bytes + str bytes
 }
 
-func (mailApp *MailApp) Send(dst net.Conn, pkg []byte) error {
-	_, err := dst.Write(pkg)
-	return err
-}
+func (mailApp *MailApp) Send(connection entity.Connection, inf entity.ClientInformation) (repository.Response, error) {
+	conn, err := net.Dial("tcp", net.JoinHostPort(connection.Host, connection.Port))
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err = conn.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
 
-func (mailApp *MailApp) Receive(src net.Conn) (repository.Response, error) {
+	pkg := mailApp.createPackage(inf)
+	_, err = conn.Write(pkg)
+	if err != nil {
+		return nil, err
+	}
+
 	tmp := make([]byte, 256)
-	_, err := src.Read(tmp)
+	_, err = conn.Read(tmp)
 	if err != nil {
 		return nil, err
 	}
