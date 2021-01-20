@@ -19,6 +19,10 @@ endif
 test:
 	sh test.sh
 
+.PHONY: func
+func:
+	sh func.sh
+
 .PHONY: fmt
 fmt:
 	gofmt -s -w ./cmd
